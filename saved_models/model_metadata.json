@@ -1,0 +1,13 @@
+{
+  "numeric_features": [
+    "rating",
+    "helpful_vote",
+    "title_length",
+    "word_count",
+    "is_extreme_rating"
+  ],
+  "text_feature": "text_clean",
+  "model_type": "RandomForestClassifier (Model B - no shortcut features, trained on full dataset)",
+  "test_accuracy": 0.846,
+  "cv_mean_accuracy": 0.843
+}

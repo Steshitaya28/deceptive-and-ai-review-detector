@@ -1,0 +1,11 @@
+{
+  "numeric_features": [
+    "perplexity_capped",
+    "burstiness",
+    "vocab_diversity"
+  ],
+  "text_feature": "text",
+  "model_type": "RandomForestClassifier (AI-generated text detector)",
+  "cv_mean_accuracy": 0.927,
+  "cv_std": 0.0074
+}
