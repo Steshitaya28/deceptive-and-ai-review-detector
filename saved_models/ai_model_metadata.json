@@ -1,11 +1,10 @@
 {
   "numeric_features": [
-    "perplexity_capped",
     "burstiness",
     "vocab_diversity"
   ],
   "text_feature": "text",
-  "model_type": "RandomForestClassifier (AI-generated text detector)",
-  "cv_mean_accuracy": 0.927,
-  "cv_std": 0.0074
+  "model_type": "RandomForestClassifier (lightweight, no GPT-2/perplexity)",
+  "test_accuracy": 0.9,
+  "note": "Perplexity feature dropped for deployment memory constraints (Render free tier 512MB limit)"
 }

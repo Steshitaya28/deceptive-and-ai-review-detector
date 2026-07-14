@@ -1,17 +1,14 @@
-# Imports and setup
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import joblib
 import json
 import re
 import numpy as np
 from scipy.sparse import hstack
-from transformers import GPT2LMHeadModel, GPT2TokenizerFast
-import torch
-from fastapi.middleware.cors import CORSMiddleware
 
-# creating fastapi app
 app = FastAPI()
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -19,12 +16,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 @app.middleware("http")
 async def add_private_network_header(request, call_next):
     response = await call_next(request)
     response.headers["Access-Control-Allow-Private-Network"] = "true"
     return response
-    
+
 # Load Model 1 (Fake Review Detector)
 fake_review_model = joblib.load('../saved_models/fake_review_model.pkl')
 tfidf_vectorizer = joblib.load('../saved_models/tfidf_vectorizer.pkl')
@@ -33,7 +31,7 @@ numeric_scaler = joblib.load('../saved_models/numeric_scaler.pkl')
 with open('../saved_models/model_metadata.json', 'r') as f:
     model1_metadata = json.load(f)
 
-# Load Model 2 (AI Text Detector)
+# Load Model 2 (AI Text Detector - lightweight version)
 ai_text_model = joblib.load('../saved_models/ai_text_model.pkl')
 ai_tfidf_vectorizer = joblib.load('../saved_models/ai_tfidf_vectorizer.pkl')
 ai_numeric_scaler = joblib.load('../saved_models/ai_numeric_scaler.pkl')
@@ -41,23 +39,7 @@ ai_numeric_scaler = joblib.load('../saved_models/ai_numeric_scaler.pkl')
 with open('../saved_models/ai_model_metadata.json', 'r') as f:
     model2_metadata = json.load(f)
 
-# Loading GPT2 for perplexity calculation
-gpt2_tokenizer = GPT2TokenizerFast.from_pretrained('gpt2')
-gpt2_model = GPT2LMHeadModel.from_pretrained('gpt2')
-gpt2_model.eval()
-
 print("All models loaded successfully.")
-
-# Required Functions
-def calculate_perplexity(text, tokenizer, model, max_length=512):
-    encodings = tokenizer(text, return_tensors='pt', truncation=True, max_length=max_length)
-    input_ids = encodings.input_ids
-    with torch.no_grad():
-        outputs = model(input_ids, labels=input_ids)
-        loss = outputs.loss
-    perplexity = torch.exp(loss).item()
-    return perplexity
-PERPLEXITY_CAP = 747.325339
 
 def calculate_burstiness(text):
     sentences = text.split('.')
@@ -105,13 +87,11 @@ def analyze_review(review: ReviewInput):
     
     fake_probability = fake_review_model.predict_proba(model1_features)[0][1]
 
-    # Model 2 features
-    raw_perplexity = calculate_perplexity(review.text, gpt2_tokenizer, gpt2_model)
-    perplexity_capped = min(raw_perplexity, PERPLEXITY_CAP)
+    # Model 2 features (lightweight - no perplexity)
     burstiness = calculate_burstiness(review.text)
     vocab_diversity = calculate_vocab_diversity(review.text)
     
-    model2_numeric = np.array([[perplexity_capped, burstiness, vocab_diversity]])
+    model2_numeric = np.array([[burstiness, vocab_diversity]])
     model2_numeric_scaled = ai_numeric_scaler.transform(model2_numeric)
     
     model2_tfidf = ai_tfidf_vectorizer.transform([review.text])
@@ -139,4 +119,3 @@ def analyze_review(review: ReviewInput):
         "combined_trust_score": trust_score,
         "trust_label": trust_label
     }
-    

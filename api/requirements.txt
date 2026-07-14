@@ -2,7 +2,5 @@ fastapi
 uvicorn
 joblib
 scikit-learn
-numpy==2.5.1
+numpy
 scipy
-transformers
-torch
