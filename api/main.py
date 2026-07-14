@@ -100,8 +100,8 @@ def analyze_review(review: ReviewInput):
     ai_probability = ai_text_model.predict_proba(model2_features)[0][1]
 
     # Combine into trust score
-    fake_weight = 0.6
-    ai_weight = 0.4
+    fake_weight = 0.7
+    ai_weight = 0.3
     
     risk_score = (fake_probability * fake_weight) + (ai_probability * ai_weight)
     trust_score = round((1 - risk_score) * 100)
